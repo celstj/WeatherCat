@@ -38,7 +38,6 @@ a:hover {
 body {
   margin: 0;
   display: flex;
-  /* place-items: center; */
   min-width: 320px;
   min-height: 20vh;
 }
@@ -108,6 +107,50 @@ button:focus-visible {
   margin: 3%;
 }
 
+/* --- UPCOMING FORECAST --- */
+.upcoming-weather {
+  display: flex;
+  align-items: right;
+  justify-content: right;
+  width:100%;
+  margin-top: 20px;
+}
+
+.forecast-container {
+  display: flex;
+}
+
+.forecast-day {
+  width: 100px;
+  padding: 10px;
+  margin: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.forecast-day:hover {
+  cursor: pointer;
+}
+
+.forecast-day h4 {
+  font-size: 1em;
+  margin-bottom: 15px;
+  margin-top: 5px;
+}
+
+.forecast-day p {
+  font-size: 0.8em;
+  margin: 5px 0;
+}
+
+.max-temp, .min-temp {
+  display: inline-block;
+  padding: 0 8px;
+}
+
+.max-temp {
+  font-weight: bold;
+}
 
 
 /* COLOUR THEME */
