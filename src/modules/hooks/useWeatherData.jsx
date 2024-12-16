@@ -22,12 +22,14 @@ const useWeatherData = (apiKey) => {
   
             const forecast = await getForecast(apiKey, locationData, 5); 
             setForecastData(forecast);
+            console.log("Forecast Retrieved");
+
           } else {
             throw new Error('Unable to fetch location');
           }
         } catch (error) {
-          console.error('Error fetching weather or location:', error);
-          setError(error);
+            console.error('Error fetching weather or location:', error);
+            setError(error);
         }
       };
   
@@ -37,13 +39,18 @@ const useWeatherData = (apiKey) => {
 
     const handleSearch = async (query) => {
       try {
+
+        setLocation(query);
+        console.log("Searched Location: ", query);
+
         // Fetch current weather based on the searched location
         const weather = await getWeather(apiKey, query);
         setWeatherData(weather);  // Update current weather
-  
+
         // Fetch the forecast based on the searched location
         const forecast = await getForecast(apiKey, query, 5);  // Get 5-day forecast
         setForecastData(forecast);  // Update forecast data
+
       } catch (error) {
         console.error('Error fetching data for search:', error);
         setError(error);

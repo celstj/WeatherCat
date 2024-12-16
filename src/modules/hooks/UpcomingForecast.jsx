@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Forecast = ({forecastData}) => {
+const Upcoming = ({forecastData}) => {
     if(!forecastData) return null;
 
     const getDayOfWeek = (date) => {
@@ -31,4 +31,4 @@ const Forecast = ({forecastData}) => {
     );
 };
 
-export default Forecast;
+export default Upcoming;
