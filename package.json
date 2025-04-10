@@ -2,7 +2,7 @@
   "name": "first-react-app",
   "private": true,
   "version": "0.0.0",
-  "homepage": "https://celstj.github.io/WeatherCat/",
+  "homepage": "https://celstj.github.io/WeatherCat",
   "type": "module",
   "watch": {
     "build": {
