@@ -20,5 +20,6 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:5000', //req to backend
     }
-  }
+  },
+  base: '/WeatherCat/',
 });
