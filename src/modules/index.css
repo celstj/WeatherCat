@@ -18,11 +18,13 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
 }
 
 #root {
   max-width: 1280px;
   margin: 0 auto;
+  padding: 20px;
   text-align: center;
 }
 
@@ -47,7 +49,17 @@ h1 {
   line-height: 1.1;
 }
 
+img {
+  display: inline-block;
+}
+
 /* --- SEARCH BAR --- */
+
+.search-bar > form {
+  width: 650px;
+  text-align: center;
+  display: inline-block;
+}
 
 .search-input {
   color: #201b20;
@@ -73,28 +85,27 @@ button {
 button:hover {
   border-color: #646cff;
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
 .suggestions-dropdown {
+  position: relative;
   list-style: none;
-  text-align: left;
-  padding-left: 15px;
-  padding-top: 8px;
-  /* margin: 0; */
+  padding-top: 2px;
   font-size: 15px;
   border: 1px solid #646cff;
-  width: 400px;
-  z-index: -10px;
-  margin-top: -10px;
-  margin-left: 5px;
+  border-radius: 5px;
+  width: 380px;
+  z-index: -15px;
+  margin-top: -8px;
+  left: 110px;
 }
 
 .suggestions-dropdown > li:hover {
   cursor: pointer;
-  background-color: #d9daeb;
 }
 
 
@@ -104,7 +115,12 @@ button:focus-visible {
   height: 500px;
   border: 1px solid #646cff;
   border-radius: 10px;
-  margin: 3%;
+  margin-top: 40px;
+
+  .weather-mascot img {
+    width: 300px;
+    height: auto;
+  }
 }
 
 /* --- UPCOMING FORECAST --- */
@@ -152,18 +168,24 @@ button:focus-visible {
   font-weight: bold;
 }
 
+.upcoming_condition {
+  display: inline-block;
+  
+}
+
 /* -- HOURLY SLIDER -- */
 
 
 /* Style for the Hourly Slider Component */
 .hourly-component {
-  width: 100%;
+  width: 95%;
+  height: 60px;
   /* max-width: 800px; */
   margin: 0 auto;
-  padding: 20px;
+  padding: 5px;
   box-sizing: border-box;
   text-align: center;
-  background-color: grey; /* Ensure the background is white */
+  background-color: rgba(0, 0, 0, 0.1);
   border-radius: 10px;
 }
 
@@ -171,21 +193,21 @@ button:focus-visible {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 10px;
+  padding: 0 5px;
 }
 
 .slick-track {
-  background-color: blue;
-  width: 100%;
-  height: 20px;
+  width: 80%;
+  height: 50px;
 }
 
 .hour-slider {
-  background-color: red;
-  width: 20px;
-  height: 20px;
-  padding: 15px;
-  margin: 0 5px;
+  /* background-color: red; */
+  border: 2px solid #646cff;
+  width: 10px;
+  height: 50px;
+  padding: 0 5px;
+  margin: 0 2px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   cursor: pointer;
@@ -199,13 +221,13 @@ button:focus-visible {
 
 .hour-slider p {
   font-size: 14px;
-  margin: 5px 0;
+  margin: 0 auto;
   font-weight: bold;
   color: #333;
 }
 
 .hour-slider p:last-child {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: normal;
   color: black;
 }

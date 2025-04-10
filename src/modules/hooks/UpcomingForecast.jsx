@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Upcoming = ({forecastData}) => {
+const Upcoming = ({forecastData, onDaySelect, selectedDay}) => {
     if(!forecastData) return null;
 
     const getDayOfWeek = (date) => {
@@ -17,10 +17,16 @@ const Upcoming = ({forecastData}) => {
         <div className="forecast-container">
         {upcomingForecast.map((day) => {
             const dayOfWeek = getDayOfWeek(day.date);
+            const isSelected = selectedDay instanceof Date ? selectedDay : new Date(selectedDay);
+
             return (
-            <div key={day.date} className="forecast-day">
+            <div 
+                key={day.date} 
+                className={`forecast-day ${isSelected ? 'selected' : ""}`}
+                onClick = {() => onDaySelect(new Date(day.date).toDateString())}
+            >
                 <h4 className="day-of-week">{dayOfWeek}</h4>
-                <p className="condition">{day.day.condition.text}</p>
+                <img className="upcoming_condition" src={day.day.condition.icon} />
                 <p className="max-temp">{Math.trunc(day.day.maxtemp_c)}°C</p>
                 <p className="min-temp">{Math.trunc(day.day.mintemp_c)}°C</p>
             </div>

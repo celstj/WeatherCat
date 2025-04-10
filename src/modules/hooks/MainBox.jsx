@@ -3,104 +3,167 @@ import SearchBar from './SearchBar';
 import useWeatherData from './useWeatherData';
 import Upcoming from './UpcomingForecast';
 import HourlySlider from './HourlySlider';
+import { isSameHourBlock } from '../utils/timeGrem';
+import useFetchCatMascot from './useFetchCatMascot';
 
 function MainBox() {
     const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
-    const { weatherData, forecastData, error, handleSearch } = useWeatherData(apiKey);
+    const { weatherData, forecastData, setQuery, error, handleSearch } = useWeatherData(apiKey);
 
     const [selectedHour, setSelectedHour] = useState(null);
+    const [selectedDay, setSelectedDay] = useState(new Date()); 
+    const [mascotImage, setMascotImage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    const hourlyData = useMemo(() => {
-        if (!forecastData || !forecastData.forecast || 
-            !forecastData.forecast.forecastday || forecastData.length === 0) {   
-            return [];
+    const [combinedHourlyData, setCombinedHourlyData] = useState([]);
+
+    // flatten hourly data from all forecast days
+    useEffect(() => {
+        if (forecastData?.forecast?.forecastday) {
+            const combined = forecastData.forecast.forecastday.flatMap(day =>
+                day.hour.map(hour => ({
+                    ...hour,
+                    timeObj: new Date(hour.time),
+                    hourString: new Date(hour.time).toLocaleTimeString([], {
+                        hour: 'numeric',
+                        hour12: true
+                    })
+                }))
+            );
+            setCombinedHourlyData(combined);
         }
-        return forecastData.forecast.forecastday[0]?.hour || [];
-    }, [forecastData]);
+    }, [forecastData, weatherData]);
 
-                // Log the weatherData structure
-                // useEffect(() => {
-                //     console.log("forecastData:", forecastData);
-                // }, [forecastData]);
+    // const combinedHourlyData = useMemo(() => {
+    //     if (!forecastData?.forecast?.forecastday) return [];
 
-    const onHourSelect = (hour) => {
-        setSelectedHour(hour);
-    }
+    //     return forecastData.forecast.forecastday.flatMap(day =>
+    //         day.hour.map(hour => ({
+    //             ...hour,
+    //             timeObj: new Date(hour.time),
+    //             hourString: new Date(hour.time).toLocaleTimeString([], {
+    //                 hour:"numeric",
+    //                 hour12: true
+    //             })
+    //         }))
+    //     );
+    // },[weatherData, forecastData, isLoading]);
 
-    const formattedSelectedHour = useMemo(() => {
-        console.log("selected hour: ", selectedHour);
+    // on forecast load, select nearest future hour
+    useEffect(() => {
+        if (combinedHourlyData.length > 0 && weatherData?.location?.localtime) {
+            const now = new Date(weatherData.location.localtime);
+
+            const currentHour = combinedHourlyData.find(h => 
+                isSameHourBlock (h.timeObj, now)
+            );
+
+            setSelectedHour(currentHour || combinedHourlyData.find(h => h.timeObj > now));
+            }
+        }, [combinedHourlyData, weatherData]);
         
-        if (!selectedHour) return null;
-
-        const hourDate = new Date(selectedHour.time);
-        const time = hourDate;
-
-        const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
-        const dateOptions = { day: '2-digit', month: 'long', year: 'numeric' };
-
-        const formattedTime = time.toLocaleString('en-US', timeOptions).replace(/:\d{2}/, ':00');
-        const formattedDate = time.toLocaleDateString('en-US', dateOptions);
-
-        return {
-            time: formattedTime, 
-            date: formattedDate,
-            temp_c: selectedHour.temp_c,
-            temp_f: selectedHour.temp_f,
-            condition: selectedHour.condition.text,
-            wind: selectedHour.wind_kph,
-            humidity: selectedHour.humidity,
+        // change display data according to hour clicked on slider
+        const handleSelectHour = (hour) => {
+            setSelectedHour(hour);
         };
-    }, [selectedHour]);
-    console.log("formattedSelectedHour:", formattedSelectedHour);
 
+    // Get weather condition for selected hour for Mascot change
+    // const weatherConditionCode = useMemo(() => {
+    //     const selectedHour = hourlyData?.find(
+    //         hour => new Date(hour.time).getHours() === selectedHour
+    //     );
+    //     return selectedHour?.condition?.code;
+    // }, [hourlyData, selectedHour]);
 
-    const formattedDateTime = useMemo(() => {
-        if (!weatherData) return {time: '', date: ''};
+    // Use the custom hook here to fetch the mascot image
+    // const mascotImageUrl = useFetchCatMascot(weatherConditionCode);
 
-        const localtime = weatherData.location.localtime;
-        const time = new Date(localtime);
+    // useEffect(() => {
+    //     if (mascotImageUrl) {
+    //         setMascotImage(mascotImageUrl);
+    //     }
+    // }, [mascotImageUrl]);
 
-        const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
+    // Update the day and time at midnight
+    useEffect(() => {
+        let timeoutId;
+        const updateDayAtMidnight = () => {
+            const now = new Date();
+            const msUntilMidnight = new Date(now.setHours(23, 59, 59, 999)) - now;
+            setSelectedDay(new Date());
+            timeoutId = setTimeout(updateDayAtMidnight, msUntilMidnight);
+        };
+        updateDayAtMidnight();
+        return () => clearTimeout(timeoutId);
+    }, []);
 
-        const dateOptions = { day: '2-digit', month: 'long', year: 'numeric' };
+    // Handle search functionality
+    const handleSearchWrapper = async (query) => {
+        setIsLoading(true);
+        setQuery(query);
+        setSelectedHour(null);  // Reset selected hour after search
+        setSelectedDay(new Date());  // Reset to today after search
+        setIsLoading(false);
 
-        const formattedTime = time.toLocaleString('en-US', timeOptions).replace(/:\d{2}/, ':00');
-        const formattedDate = time.toLocaleDateString('en-US', dateOptions);
-
-        return { time: formattedTime, date: formattedDate };
-    }, [weatherData]);
-
-    const { time: currentTime, date: currentDate } = formattedDateTime;
-
+        console.log("is combined changed", combinedHourlyData);
+        console.log('selectedHour', selectedHour);
+        console.log("whats in query", query);
+    };
 
     return (
         <div className='header-section'>
             <h2>Weather Cat</h2>
     
-            <SearchBar onSearch={handleSearch} />
-    
-            {error && <p>Error loading weather data: {error.message}</p>}
-    
-            {weatherData && (
-            <div className='weather-body'>
-                <div className='today-weather'>
-                <h2>
-                    { weatherData.location.name ? `${weatherData.location.name},
-                    ${weatherData.location.country}` : 'Location Not Available' }
-                </h2>
-                <h3>{ formattedSelectedHour?.date || currentDate }</h3>
-                <h3>{formattedSelectedHour?.time || currentTime }</h3>
-                <p>Temperature: {formattedSelectedHour?.temp_c || weatherData.current.temp_c}°C</p>
-                <p>Weather: {formattedSelectedHour?.condition || weatherData.current.condition.text}</p>
-                <p>Wind Speed: {formattedSelectedHour?.wind || weatherData.current.wind_kph}/kph</p>
-                <p>Humidity: {formattedSelectedHour?.humidity || weatherData.current.humidity}%</p>
-                </div>
-                
-                {forecastData && <Upcoming forecastData={forecastData} />}
-                
-                <HourlySlider hourlyData={hourlyData} onHourSelect={onHourSelect} />
-            </div>
+            <SearchBar onSearch={handleSearchWrapper} />    
+            
+            {error && (
+                <p className="error-message">
+                    Error fetching location: {error.message}
+                </p>
             )}
+    
+            {weatherData?.location && !isLoading && (
+                <div className='weather-body'>
+                    {mascotImage && <img className='weather-mascot' src={mascotImage} alt="Weather mascot"/>}
+                    <div className='today-weather'>
+                        <h2>
+                            {weatherData.location.name ? 
+                                `${weatherData.location.name}, ${weatherData.location.country}` 
+                                : 'Location Not Available'}
+                        </h2>              
+                        <h3>{selectedHour 
+                            ? new Date(selectedHour.time).toLocaleDateString('en-US', 
+                                { day: '2-digit', month: 'long', year: 'numeric' }) 
+                            : weatherData?.current?.currentDate}
+                        </h3>
+                        <h3>{selectedHour 
+                            ? new Date(selectedHour.time).toLocaleTimeString('en-US', 
+                                { hour: '2-digit', minute: '2-digit', hour12: true }).replace(/:\d{2}/, ':00') 
+                            : weatherData?.current?.currentTime}
+                        </h3>
+
+                        <p>Temperature: {selectedHour?.temp_c ?? weatherData?.current?.temperature}°C</p>
+                        <p>Weather Condition: {selectedHour?.condition?.text ?? weatherData?.current?.condition.text}</p>
+                        <p>Wind Speed: {selectedHour?.wind_kph ?? weatherData?.current?.windSpeed} /kph</p>
+                        <p>Humidity: {selectedHour?.humidity ?? weatherData?.current?.humidity}%</p>
+                    </div>
+                    
+                    {forecastData && (
+                        <Upcoming 
+                            forecastData={forecastData}
+                            onDaySelect={(day) => setSelectedDay(new Date(day))}
+                            selectedDay={selectedDay}
+                        />
+                    )}
+
+                    <HourlySlider  
+                        hourlyData={combinedHourlyData} 
+                        onHourSelect={handleSelectHour} 
+                        weatherData={weatherData}
+                    />
+                </div>
+            )}
+            {isLoading && <p>Loading...</p>}
         </div>
     );
 }

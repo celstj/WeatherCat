@@ -53,6 +53,7 @@ function SearchBar({ onSearch }) {
                 <button type="submit">
                 &#x1F50E;&#xFE0E;
                 </button>
+                
                 {suggestions.length > 0 && (
                     <ul className='suggestions-dropdown'>
                         {suggestions.map((suggestion, index) => (
@@ -64,7 +65,7 @@ function SearchBar({ onSearch }) {
                             </li>
                         ))}
                     </ul>
-                )}
+                )}                
             </form>
         </div>
     )

@@ -1,8 +1,7 @@
 import MainBox from './modules/hooks/MainBox';
 
-
 function App() {
-  return (
+    return (
 
     <MainBox/>
   
