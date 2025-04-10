@@ -7,7 +7,7 @@ const useLocationByIP = () => {
     useEffect(() => {
         const fetchLocation = async () => {
             try {
-                const response = await fetch('http://ip-api.com/json');
+                const response = await fetch('https://ip-api.com/json');
                 const data = await response.json();
                 
                 // Check if the status is 'fail' and throw an error
