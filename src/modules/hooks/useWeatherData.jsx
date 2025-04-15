@@ -15,6 +15,7 @@ const useWeatherData = (apiKey) => {
         if (location && isInitialLoad) {
             setIsInitialLoad(false);
             setQuery(location?.city || location?.region);
+            console.log("check IP:", location,",",isInitialLoad );
         }
     }, [location, isInitialLoad]);
 

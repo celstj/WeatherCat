@@ -19,14 +19,25 @@ const HourlySlider = ({ hourlyData, onHourSelect, weatherData }) => {
     const currentHour = now.getHours();
 
     const filteredHours = isDataLoaded ? hourlyData
-        .filter(hour => hour.timeObj.getHours() > now.getHours() 
-            || (hour.timeObj.getHours() === now.getHours()
-            && hour.timeObj.getMinutes() > now.getMinutes()))
+        .filter(hour => {
+            const hourTime = hour.timeObj.getHours();
+            const currentMinute = now.getMinutes();
+
+            if (hourTime > currentHour || 
+                (hourTime === currentHour && hour.timeObj.getMinutes() > currentMinute) || 
+                (currentHour === 23 && hourTime === 0)) {
+                return true;
+            }
+
+            return false;
+        })
         .map((hour, index) => ({
             ...hour,
             hourString: new Date(hour.time).toLocaleTimeString([], {hour: 'numeric', hour12:true}),
         }))
         .filter((_, index) => index % 3 === 0) : [];
+
+        // console.log("filteredHours", filteredHours);
 
     const settings = {
         dots: false,

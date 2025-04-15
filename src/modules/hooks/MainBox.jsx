@@ -34,28 +34,12 @@ function MainBox() {
         }
     }, [forecastData, weatherData]);
 
-    // const combinedHourlyData = useMemo(() => {
-    //     if (!forecastData?.forecast?.forecastday) return [];
-
-    //     return forecastData.forecast.forecastday.flatMap(day =>
-    //         day.hour.map(hour => ({
-    //             ...hour,
-    //             timeObj: new Date(hour.time),
-    //             hourString: new Date(hour.time).toLocaleTimeString([], {
-    //                 hour:"numeric",
-    //                 hour12: true
-    //             })
-    //         }))
-    //     );
-    // },[weatherData, forecastData, isLoading]);
-
-    // on forecast load, select nearest future hour
     useEffect(() => {
         if (combinedHourlyData.length > 0 && weatherData?.location?.localtime) {
             const now = new Date(weatherData.location.localtime);
 
             const currentHour = combinedHourlyData.find(h => 
-                isSameHourBlock (h.timeObj, now)
+                isSameHourBlock(h.timeObj, now)
             );
 
             setSelectedHour(currentHour || combinedHourlyData.find(h => h.timeObj > now));
