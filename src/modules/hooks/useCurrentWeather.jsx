@@ -9,13 +9,20 @@ const useCurrentWeather = (apiKey, location) => {
             if (location) {
                 try {
                     const response = await fetch(
-                        `http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${location}`
+                        `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${location}`
                     );
                     const data = await response.json();
+
                     console.log("Weather Data: ", data);
+
+                    if (data.error) {
+                        throw new Error(data.error.message);
+                    }
+
                     setWeatherData(data);
+                    setError(null);
                 } catch (error) {
-                    setError(error);
+                    setError(error.message || 'Failed to fetch current weather data');
                 }
             }
         };

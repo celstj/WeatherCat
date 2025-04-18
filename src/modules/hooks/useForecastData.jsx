@@ -9,13 +9,20 @@ const useForecastData = (apiKey, location, days = 5) => {
             if (location) {
                 try {
                     const response = await fetch(
-                        `http://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${location}&days=${days}`
+                        `https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${location}&days=${days}`
                     );
                     const data = await response.json();
+
                     console.log("Forecast Data: ", data);
+
+                    if (data.error) {
+                        throw new Error(data.error.message);
+
+                    }
                     setForecastData(data);
+                    setError(null);
                 } catch (error) {
-                    setError(error);
+                    setError(error.message || "Failed to fetch forecast data");
                 }
             }
         };

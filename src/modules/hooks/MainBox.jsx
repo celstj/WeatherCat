@@ -100,9 +100,9 @@ function MainBox() {
     
             <SearchBar onSearch={handleSearchWrapper} />    
             
-            {error && (
+            {error && !location && (
                 <p className="error-message">
-                    Error fetching location: {error.message}
+                    Error fetching location: {error}
                 </p>
             )}
     
