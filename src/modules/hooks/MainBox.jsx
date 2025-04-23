@@ -113,6 +113,10 @@ function MainBox() {
     const forecastForSelectedDay = forecastData?.forecast?.forecastday?.find(
         (day) => DateTime.fromISO(day.date).hasSame(selectedDay, 'day')
     );
+    
+    // Get the timezone from weatherData (fallback to "UTC" if not available)
+    const locationTimezone = weatherData?.location?.tz_id || "UTC";
+
 
     // mascot images feedback
     // const mascotImage = useFetchCatMascot(
@@ -174,6 +178,7 @@ function MainBox() {
                         onHourSelect={handleSelectHour} 
                         weatherData={weatherData}
                         selectedDay={selectedDay}
+                        locationTimezone={locationTimezone}
                     />
                 </div>
             ) : (

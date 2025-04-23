@@ -4,49 +4,40 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { DateTime } from "luxon";
 
-const HourlySlider = ({ hourlyData, onHourSelect, weatherData, selectedDay }) => {    
-    const [isDataLoaded, setIsDataLoaded] = useState(false);
+const HourlySlider = ({ hourlyData, onHourSelect, weatherData, selectedDay, locationTimezone }) => {    
     const [filteredHours, setFilteredHours] = useState([]);
-
-    useEffect(() => {
-        if (hourlyData && hourlyData.length > 0) {
-            setIsDataLoaded(true);
-        } else {
-            setIsDataLoaded(false);
-        }
-    }, [hourlyData]);
 
     const now = DateTime.fromISO(weatherData?.location?.localtime);
     const currentHour = now.hour;
 
+    // console.log("before fulter", hourlyData);
     useEffect(() => {
-        // console.log('hourlyData:', hourlyData);
-        console.log('selectedDay:', selectedDay.toString());
-
         if (hourlyData && selectedDay) {
-            const selectedDate = DateTime.fromJSDate(new Date(selectedDay));
-            const localNow = DateTime.local();
-            const localTimeZone = localNow.zoneName;
-            // console.log('selectedDate:', selectedDate.toString());
-            // console.log("filteredHours before filter:", hourlyData);
+            const selectedDate = DateTime.fromJSDate(new Date(selectedDay)).startOf('day');
+            const localNow = DateTime.now().setZone(locationTimezone);
+            // const localTimeZone = localNow.zoneName;
+
+               // Log to check selectedDay and localNow
+                console.log("Selected Day:", selectedDate.toISO());
+                console.log("Local Now:", localNow.toISO());
 
             const filtered = hourlyData
             .map(hour => {
-                const hourTime = DateTime.fromFormat(hour.time, "yyyy-MM-dd HH:mm", { zone: localTimeZone });
+                const hourTime = DateTime.fromFormat(hour.time, "yyyy-MM-dd HH:mm", { zone: locationTimezone });
+                
+                // Log to check each hour's time
+                console.log("Hour Time: (UTC)", hourTime.toISO());
+
                 return {
                     ...hour,
                     hourTime,
                     hourDate: hourTime.startOf('day')
                 };
             })
-            .filter(hour => {
-                // Check if this hour belongs to the selected day
-                return hour.hourDate.hasSame(selectedDate, 'day');
+            .filter(hour =>  {
+                return hour.hourDate >= selectedDate;
             })
-            .filter(hour => {
-                // Check if this hour is in the future
-                return hour.hourTime > localNow;
-            })
+            .filter(hour => hour.hourTime > localNow)
             .map(hour => ({
                 ...hour,
                 hourString: hour.hourTime.toLocaleString(DateTime.TIME_SIMPLE)
@@ -60,14 +51,8 @@ const HourlySlider = ({ hourlyData, onHourSelect, weatherData, selectedDay }) =>
             console.warn("No matching hours found. Might be due to timezone mismatch or old data.");
         }
     }
-}, [hourlyData, selectedDay]);  // Re-run this effect whenever hourlyData or selectedDay changes
+}, [hourlyData, selectedDay, locationTimezone]);  // Re-run this effect whenever hourlyData or selectedDay changes
 
-    
-    // useEffect(() => {
-    //     console.log('Hourly Data:', hourlyData);
-    //     console.log('Selected Day:', selectedDay);
-    //     console.log('Filtered Hours:', filteredHours);
-    // }, [filteredHours]);
 
     
     const settings = {
