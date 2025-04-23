@@ -24,22 +24,15 @@ const useWeatherData = (apiKey) => {
 
             setQuery(newQuery); //update query state
 
-            const {weather, forecast} = await Promise.all([
-                    useCurrentWeather(apiKey, newQuery), // Get weather data for query
-                    useForecastData(apiKey, newQuery) // Get forecast data for query 
-                ]);
-
+            const [weather, forecast] = await Promise.all([
+                useCurrentWeather(apiKey, newQuery),
+                useForecastData(apiKey, newQuery),
+            ]);
 
             // Update the location based on the search query
-            setWeatherData(prevData => ({
-                ...prevData,
-                current: weather.current,
-            }));
-
-            setForecastData(prevData => ({
-                ...prevData,
-                forecast: forecast.data,
-            }));
+            
+            setWeatherData(weather.current);
+            setForecastData(forecast.data);
 
         } catch (error) {
             console.error('Error fetching data for search:', errorGroup);

@@ -1,129 +1,156 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { DateTime } from 'luxon';
 import SearchBar from './SearchBar';
 import useWeatherData from './useWeatherData';
 import Upcoming from './UpcomingForecast';
 import HourlySlider from './HourlySlider';
-import { isSameHourBlock } from '../utils/timeGrem';
 import useFetchCatMascot from './useFetchCatMascot';
 
 function MainBox() {
     const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
-    const { weatherData, forecastData, setQuery, error, handleSearch } = useWeatherData(apiKey);
+    const { weatherData, forecastData, setQuery, error } = useWeatherData(apiKey);
 
     const [selectedHour, setSelectedHour] = useState(null);
-    const [selectedDay, setSelectedDay] = useState(new Date()); 
-    const [mascotImage, setMascotImage] = useState('');
+    const [selectedDay, setSelectedDay] = useState(DateTime.local().startOf('day')); 
     const [isLoading, setIsLoading] = useState(false);
-
     const [combinedHourlyData, setCombinedHourlyData] = useState([]);
+    // const [mascotImage, setMascotImage] = useState(null);
+
+
+     // Update selected hour when selectedDay changes
+    const getFirstHourForSelectedDay = (hourlyData, day) => {
+        const selectedDate = DateTime.isDateTime(day) ? day.startOf('day') : DateTime.fromISO(day).startOf('day');
+    
+        const forecastForDay = hourlyData.filter(hour => 
+            hour.timeObj.hasSame(selectedDate, 'day')
+        );
+    
+        if (!forecastForDay.length) return null;
+
+        const now = DateTime.local().setZone(hourlyData[0]?.timeObj.zoneName);
+        const futureHour = forecastForDay.find(hour => hour.timeObj > now);
+    
+        return futureHour || forecastForDay[0] || null;
+    };
+    
 
     // flatten hourly data from all forecast days
     useEffect(() => {
         if (forecastData?.forecast?.forecastday) {
+            console.log("Forecast data is valid, combining hourly data...");
             const combined = forecastData.forecast.forecastday.flatMap(day =>
                 day.hour.map(hour => ({
                     ...hour,
-                    timeObj: new Date(hour.time),
-                    hourString: new Date(hour.time).toLocaleTimeString([], {
-                        hour: 'numeric',
-                        hour12: true
-                    })
+                    timeObj: DateTime.fromSQL(hour.time, { 
+                        zone: forecastData.location?.tz_id || "UTC",
+                    }),
+                    hourString: DateTime.fromSQL(hour.time).toLocaleString(DateTime.TIME_SIMPLE)
                 }))
             );
             setCombinedHourlyData(combined);
+            console.log("Combined Hourly Data:", combined); // Log the combined data
         }
-    }, [forecastData, weatherData]);
+    }, [forecastData?.forecast?.forecastday]);
 
+
+    // set default selected day/hour when data loads
     useEffect(() => {
-        if (combinedHourlyData.length > 0 && weatherData?.location?.localtime) {
-            const now = new Date(weatherData.location.localtime);
+        if (combinedHourlyData?.length > 0 && weatherData?.location?.localtime) {
+            const localTimeZone = weatherData.location.timezone;
 
-            const currentHour = combinedHourlyData.find(h => 
-                isSameHourBlock(h.timeObj, now)
-            );
+            // grab time from API and real current time in same timezone
+            let localNowFromAPI = DateTime.fromISO(weatherData.location.localtime.replace(" ", "T")).startOf('hour');
+            const realNow = DateTime.local().setZone(localTimeZone).startOf('hour');
+            const localNow = realNow > localNowFromAPI ? realNow : localNowFromAPI;
 
-            setSelectedHour(currentHour || combinedHourlyData.find(h => h.timeObj > now));
+            const matchingHour = combinedHourlyData.find(h => 
+                h.timeObj.setZone(localTimeZone).hasSame(localNow, 'hour'));
+
+            const newSelectedHour = matchingHour || combinedHourlyData.find(h => 
+                h.timeObj.setZone(localTimeZone) >= localNow);
+
+            // If a new selected hour is found, update both selectedHour and selectedDay
+            if (newSelectedHour) {
+                const newSelectedDay = newSelectedHour.timeObj.startOf('day');
+
+                setSelectedDay(newSelectedDay);
+                setSelectedHour(newSelectedHour);
             }
-        }, [combinedHourlyData, weatherData]);
-        
-        // change display data according to hour clicked on slider
-        const handleSelectHour = (hour) => {
-            setSelectedHour(hour);
-        };
+        }
+    }, [weatherData, combinedHourlyData]);
+    
 
-    // Get weather condition for selected hour for Mascot change
-    // const weatherConditionCode = useMemo(() => {
-    //     const selectedHour = hourlyData?.find(
-    //         hour => new Date(hour.time).getHours() === selectedHour
-    //     );
-    //     return selectedHour?.condition?.code;
-    // }, [hourlyData, selectedHour]);
-
-    // Use the custom hook here to fetch the mascot image
-    // const mascotImageUrl = useFetchCatMascot(weatherConditionCode);
-
-    // useEffect(() => {
-    //     if (mascotImageUrl) {
-    //         setMascotImage(mascotImageUrl);
-    //     }
-    // }, [mascotImageUrl]);
-
-    // Update the day and time at midnight
-    useEffect(() => {
-        let timeoutId;
-        const updateDayAtMidnight = () => {
-            const now = new Date();
-            const msUntilMidnight = new Date(now.setHours(23, 59, 59, 999)) - now;
-            setSelectedDay(new Date());
-            timeoutId = setTimeout(updateDayAtMidnight, msUntilMidnight);
-        };
-        updateDayAtMidnight();
-        return () => clearTimeout(timeoutId);
-    }, []);
-
-    // Handle search functionality
+    // Search handler
     const handleSearchWrapper = async (query) => {
-        setIsLoading(true);
-        setQuery(query);
-        setSelectedHour(null);  // Reset selected hour after search
-        setSelectedDay(new Date());  // Reset to today after search
-        setIsLoading(false);
-
-        console.log("is combined changed", combinedHourlyData);
-        console.log('selectedHour', selectedHour);
-        console.log("whats in query", query);
+        console.log("Search Query:", query);
+        if (query.length > 0) {
+            setIsLoading(true);
+            await setQuery(query); 
+            console.log("Weather Data after query:", weatherData);  // Debug log
+            setIsLoading(false);
+        }
     };
+
+    // manual hour select (from slider)
+    const handleSelectHour = (hour) => {
+        setSelectedHour(hour);
+    };
+
+    // change selected day
+    const handleDayChange = (day) => {
+        const newDay = DateTime.fromJSDate(day);
+        if (!newDay.hasSame(selectedDay, 'day')) {
+            setSelectedDay(newDay);
+
+            const hourForDay = getFirstHourForSelectedDay(combinedHourlyData, newDay);
+            if (hourForDay) {
+                setSelectedHour(hourForDay); 
+            }
+        }
+    };
+    
+    // clicked Day forecast update
+    const forecastForSelectedDay = forecastData?.forecast?.forecastday?.find(
+        (day) => DateTime.fromISO(day.date).hasSame(selectedDay, 'day')
+    );
+
+    // mascot images feedback
+    // const mascotImage = useFetchCatMascot(
+    //     forecastForSelectedDay?.hour?.[0]?.condition?.code
+    // );
+    
 
     return (
         <div className='header-section'>
             <h2>Weather Cat</h2>
-    
             <SearchBar onSearch={handleSearchWrapper} />    
-            
-            {error && !location && (
+
+            {/* Display error message without affecting the weather data */}
+            {error && !weatherData?.location && (
                 <p className="error-message">
                     Error fetching location: {error}
                 </p>
             )}
-    
-            {weatherData?.location && !isLoading && (
+
+            {!forecastForSelectedDay && !isLoading && !weatherData?.location &&(
+            <div className="no-data-warning">😭 No forecast found for this day.</div>
+            )}
+            
+            {weatherData?.location && !isLoading && forecastForSelectedDay ? (
                 <div className='weather-body'>
-                    {mascotImage && <img className='weather-mascot' src={mascotImage} alt="Weather mascot"/>}
+                    {/* {mascotImage && <img className='weather-mascot' src={mascotImage} alt="Weather mascot"/>} */}
+                    
                     <div className='today-weather'>
                         <h2>
-                            {weatherData.location.name ? 
+                            {weatherData?.location?.name ? 
                                 `${weatherData.location.name}, ${weatherData.location.country}` 
                                 : 'Location Not Available'}
-                        </h2>              
-                        <h3>{selectedHour 
-                            ? new Date(selectedHour.time).toLocaleDateString('en-US', 
-                                { day: '2-digit', month: 'long', year: 'numeric' }) 
-                            : weatherData?.current?.currentDate}
+                        </h2>    
+                        <h3>
+                            {selectedHour?.timeObj.toLocaleString(DateTime.DATE_FULL)}
                         </h3>
-                        <h3>{selectedHour 
-                            ? new Date(selectedHour.time).toLocaleTimeString('en-US', 
-                                { hour: '2-digit', minute: '2-digit', hour12: true }).replace(/:\d{2}/, ':00') 
-                            : weatherData?.current?.currentTime}
+                        <h3>
+                            {selectedHour?.timeObj.toLocaleString(DateTime.TIME_SIMPLE)}
                         </h3>
 
                         <p>Temperature: {selectedHour?.temp_c ?? weatherData?.current?.temperature}°C</p>
@@ -132,22 +159,29 @@ function MainBox() {
                         <p>Humidity: {selectedHour?.humidity ?? weatherData?.current?.humidity}%</p>
                     </div>
                     
-                    {forecastData && (
+                    {forecastData?.forecast?.forecastday && forecastData?.forecast?.forecastday?.length > 0 ? (
                         <Upcoming 
                             forecastData={forecastData}
-                            onDaySelect={(day) => setSelectedDay(new Date(day))}
+                            onDaySelect={handleDayChange}
                             selectedDay={selectedDay}
                         />
+                    ) : (
+                        <div className="no-data-warning">😭 No forecast found for this location.</div>
                     )}
 
                     <HourlySlider  
                         hourlyData={combinedHourlyData} 
                         onHourSelect={handleSelectHour} 
                         weatherData={weatherData}
+                        selectedDay={selectedDay}
                     />
                 </div>
+            ) : (
+                // if weather data or selected hour isnt ready, show a loading message
+                <div className='loading-state'>
+                    {isLoading ? <p> Loading ... </p> : <p>Please wait, loading weather data...</p>}
+                </div>
             )}
-            {isLoading && <p>Loading...</p>}
         </div>
     );
 }

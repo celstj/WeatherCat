@@ -7,27 +7,27 @@ const useLocationByIP = () => {
     useEffect(() => {
         const fetchLocation = async () => {
             try {
-                const apiKey = import.meta.env.VITE_IP_STACK_API_KEY;
-                const response = await fetch(`https://api.ipstack.com/check?access_key=${apiKey}`);
+                const apiKey = import.meta.env.VITE_IP_INFO_API_KEY;
+                const response = await fetch(`https://ipinfo.io/json?token=${apiKey}`); // Use your API key here
                 const data = await response.json();
-                
-                // Check if the status is 'fail' and throw an error
-                if (data.status === 'fail') {
-                    throw new Error('Unable to fetch location');
+                if (data.error) {
+                    throw new Error(data.error.message);
                 }
+                
+                const { city, region, country, loc } = data; // Extract relevant location details
+                const [latitude, longitude] = loc.split(',');
 
-                // Store the location data if fetch is successful
-                setLocation(data);
+                // You now have the city, region, country, latitude, and longitude from IP geolocation
+                setLocation({ city, region, country, latitude, longitude });
             } catch (err) {
-                // Handle errors such as network issues, API issues, etc.
-                setError(err.message || 'Error fetching location');
+                setError(err.message || 'Error fetching location data');
             }
         };
 
         fetchLocation();
-    }, []); // This effect will run once on mount to fetch location by IP
+    }, []); 
 
-    return { location, error }; // Return location and error to the caller
+    return { location, error };
 };
 
 export default useLocationByIP;

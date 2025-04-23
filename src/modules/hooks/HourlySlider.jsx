@@ -1,11 +1,12 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import Slider from "react-slick";
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
+import { DateTime } from "luxon";
 
-
-const HourlySlider = ({ hourlyData, onHourSelect, weatherData }) => {    
+const HourlySlider = ({ hourlyData, onHourSelect, weatherData, selectedDay }) => {    
     const [isDataLoaded, setIsDataLoaded] = useState(false);
+    const [filteredHours, setFilteredHours] = useState([]);
 
     useEffect(() => {
         if (hourlyData && hourlyData.length > 0) {
@@ -15,30 +16,60 @@ const HourlySlider = ({ hourlyData, onHourSelect, weatherData }) => {
         }
     }, [hourlyData]);
 
-    const now = new Date(weatherData?.location?.localtime);
-    const currentHour = now.getHours();
+    const now = DateTime.fromISO(weatherData?.location?.localtime);
+    const currentHour = now.hour;
 
-    const filteredHours = isDataLoaded ? hourlyData
-        .filter(hour => {
-            const hourTime = hour.timeObj.getHours();
-            const currentMinute = now.getMinutes();
+    useEffect(() => {
+        // console.log('hourlyData:', hourlyData);
+        console.log('selectedDay:', selectedDay.toString());
 
-            if (hourTime > currentHour || 
-                (hourTime === currentHour && hour.timeObj.getMinutes() > currentMinute) || 
-                (currentHour === 23 && hourTime === 0)) {
-                return true;
-            }
+        if (hourlyData && selectedDay) {
+            const selectedDate = DateTime.fromJSDate(new Date(selectedDay));
+            const localNow = DateTime.local();
+            const localTimeZone = localNow.zoneName;
+            // console.log('selectedDate:', selectedDate.toString());
+            // console.log("filteredHours before filter:", hourlyData);
 
-            return false;
-        })
-        .map((hour, index) => ({
-            ...hour,
-            hourString: new Date(hour.time).toLocaleTimeString([], {hour: 'numeric', hour12:true}),
-        }))
-        .filter((_, index) => index % 3 === 0) : [];
+            const filtered = hourlyData
+            .map(hour => {
+                const hourTime = DateTime.fromFormat(hour.time, "yyyy-MM-dd HH:mm", { zone: localTimeZone });
+                return {
+                    ...hour,
+                    hourTime,
+                    hourDate: hourTime.startOf('day')
+                };
+            })
+            .filter(hour => {
+                // Check if this hour belongs to the selected day
+                return hour.hourDate.hasSame(selectedDate, 'day');
+            })
+            .filter(hour => {
+                // Check if this hour is in the future
+                return hour.hourTime > localNow;
+            })
+            .map(hour => ({
+                ...hour,
+                hourString: hour.hourTime.toLocaleString(DateTime.TIME_SIMPLE)
+            }))
+            .filter((_, index) => index % 3 === 0);  // Every 3rd hour only
 
-        // console.log("filteredHours", filteredHours);
+        setFilteredHours(filtered);
+        console.log('Filtered Hours:', filtered);
 
+        if (filtered.length === 0) {
+            console.warn("No matching hours found. Might be due to timezone mismatch or old data.");
+        }
+    }
+}, [hourlyData, selectedDay]);  // Re-run this effect whenever hourlyData or selectedDay changes
+
+    
+    // useEffect(() => {
+    //     console.log('Hourly Data:', hourlyData);
+    //     console.log('Selected Day:', selectedDay);
+    //     console.log('Filtered Hours:', filteredHours);
+    // }, [filteredHours]);
+
+    
     const settings = {
         dots: false,
         infinite: false,
@@ -48,17 +79,12 @@ const HourlySlider = ({ hourlyData, onHourSelect, weatherData }) => {
         swipeToSlide: true,
     };
 
-    useEffect(() => {
-        console.log('hourlyData',hourlyData);
-    }, [hourlyData]);
-
-
     return (
         <div className="hourly-component"> 
-        {filteredHours.length > 0 ? (
+            {filteredHours.length > 0 ? (
                 <Slider {...settings}>
                     {filteredHours.map((hour) => {
-                        const isCurrentHour = new Date(hour.time).getHours() === currentHour;
+                        const isCurrentHour = DateTime.fromISO(hour.time).hour === currentHour;
                         return (
                             <div
                                 key={hour.time}
