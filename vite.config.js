@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from 'tailwindcss';
 
 export default defineConfig({
+  optimizeDeps: {
+    exclude: ['dotenv', 'mongodb']
+  },
   plugins: [react()],
   css: {
     postcss: {
@@ -18,7 +21,7 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': 'http://localhost:5000', //req to backend
+      '/api': 'http://localhost:3000', //req to backend
     }
   },
   base: '/WeatherCat/',

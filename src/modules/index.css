@@ -111,16 +111,23 @@ button:focus-visible {
 
 /* --- MAIN BODY --- */
 .weather-body {
-  width: 800px;
-  height: 500px;
+  width: 900px;
+  height: 600px;
   border: 1px solid #646cff;
   border-radius: 10px;
   margin-top: 40px;
+  position: relative;
+}
 
-  .weather-mascot img {
-    width: 300px;
-    height: auto;
-  }
+.weather-mascot {
+  position: absolute;
+  left: -100px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 999;
+  pointer-events: none;
+  width: 300px;
+  height: auto;
 }
 
 /* --- UPCOMING FORECAST --- */

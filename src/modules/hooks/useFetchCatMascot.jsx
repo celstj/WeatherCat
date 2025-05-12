@@ -1,36 +1,34 @@
 import { useState, useEffect } from 'react';
 
 const useFetchCatMascot = (weatherCondition, mode = 'dark_mode') => {
-  const [mascotImage, setMascotImage] = useState(null);
+  const [mascotUrl, setMascotUrl] = useState(null);
 
   useEffect(() => {
+    if (!weatherCondition) return;
+
     const fetchMascotImage = async () => {
-      if (!weatherCondition) return;
+      const apiUrl = `/api/fetch-cat-mascot?weatherCondition=${weatherCondition}&mode=${mode}`;
 
       try {
-        const response = await fetch(`/api/fetch-cat-mascot?weatherCondition=${weatherCondition}&mode=${mode}`);
-
+        const response = await fetch(apiUrl);
         if (!response.ok) {
-          throw new Error('Error fetching mascot image');
-        }else {
-          console.log('Mascot fetched', response.blob);
+          console.error('Failed to fetch mascot image', response.status, response.statusText, 
+            `"${weatherCondition}: "${typeof weatherCondition}", "${mode}"`);
+          return;
         }
 
-        const data = await response.blob();
-        const imgUrl = URL.createObjectURL(data); // convert blob to URL for displaying the images
-        setMascotImage(imgUrl); 
+        const imageBlob = await response.blob();
+        const imageUrl = URL.createObjectURL(imageBlob); 
+        setMascotUrl(imageUrl);
+        
       } catch (error) {
-        console.error("Error fetching mascot image:", error);
+        console.error('Error fetching mascot image:', error);
       }
     };
+    fetchMascotImage();
+}, [weatherCondition, mode]); 
 
-    if (weatherCondition) {
-      fetchMascotImage();
-    }
-    
-  }, [weatherCondition, mode]); //refetch when either weather condition or mode changes
-
-  return mascotImage;
+  return mascotUrl;
 };
 
 export default useFetchCatMascot;

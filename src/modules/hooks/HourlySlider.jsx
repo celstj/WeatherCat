@@ -18,15 +18,15 @@ const HourlySlider = ({ hourlyData, onHourSelect, weatherData, selectedDay, loca
             // const localTimeZone = localNow.zoneName;
 
                // Log to check selectedDay and localNow
-                console.log("Selected Day:", selectedDate.toISO());
-                console.log("Local Now:", localNow.toISO());
+                // console.log("Selected Day:", selectedDate.toISO());
+                // console.log("Local Now:", localNow.toISO());
 
             const filtered = hourlyData
             .map(hour => {
                 const hourTime = DateTime.fromFormat(hour.time, "yyyy-MM-dd HH:mm", { zone: locationTimezone });
                 
                 // Log to check each hour's time
-                console.log("Hour Time: (UTC)", hourTime.toISO());
+                // console.log("Hour Time: (UTC)", hourTime.toISO());
 
                 return {
                     ...hour,
@@ -45,9 +45,9 @@ const HourlySlider = ({ hourlyData, onHourSelect, weatherData, selectedDay, loca
             .filter((_, index) => index % 3 === 0);  // Every 3rd hour only
 
         setFilteredHours(filtered);
-        console.log('Filtered Hours:', filtered);
+        // console.log('Filtered Hours:', filtered);
 
-        if (filtered.length === 0) {
+        if (filtered?.length === 0) {
             console.warn("No matching hours found. Might be due to timezone mismatch or old data.");
         }
     }

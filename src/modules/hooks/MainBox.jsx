@@ -117,11 +117,10 @@ function MainBox() {
     // Get the timezone from weatherData (fallback to "UTC" if not available)
     const locationTimezone = weatherData?.location?.tz_id || "UTC";
 
+    const currentWeatherCode = selectedHour?.condition?.code ?? weatherData?.current?.condition?.code;
 
     // mascot images feedback
-    // const mascotImage = useFetchCatMascot(
-    //     forecastForSelectedDay?.hour?.[0]?.condition?.code
-    // );
+    const mascotUrl = useFetchCatMascot(currentWeatherCode);
     
 
     return (
@@ -142,7 +141,13 @@ function MainBox() {
             
             {weatherData?.location && !isLoading && forecastForSelectedDay ? (
                 <div className='weather-body'>
-                    {/* {mascotImage && <img className='weather-mascot' src={mascotImage} alt="Weather mascot"/>} */}
+
+                    {mascotUrl ? (
+                        <img className='weather-mascot' src={mascotUrl} alt="Weather mascot"/>
+                        ) : (
+                            <p>Loading mascot...</p>
+                        )
+                    }
                     
                     <div className='today-weather'>
                         <h2>
