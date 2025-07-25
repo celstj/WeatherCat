@@ -58,10 +58,10 @@ const HourlySlider = ({ hourlyData, onHourSelect, weatherData, selectedDay, loca
     const settings = {
         dots: false,
         infinite: false,
-        speed: 500,
+        arrows: false,
         slidesToShow: 7,
         slidesToScroll: 1,
-        swipeToSlide: true,
+        swipeToSlide: false,
     };
 
     return (
@@ -77,6 +77,7 @@ const HourlySlider = ({ hourlyData, onHourSelect, weatherData, selectedDay, loca
                                 onClick={() => onHourSelect(hour)}
                             >
                                 <p>{hour.hourString}</p>
+                                <img className="hourly_condition" src={hour.condition.icon} />
                                 <p>{hour.temp_c}°C</p>
                             </div>
                         );

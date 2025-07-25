@@ -83,6 +83,6 @@ This ensures the mascot reflects the weather conditions for the selected time an
 
 **Potential improvements Ideas:**
 - replace all the `current api` to `forecast api` as forecast api also includes current weather data, and it'll make data retrieving more streamline
-- mobile responsive design
-- implement light and dark mode
-- embeded so that it can be put on streams or a desktop standalone plugin would be cool.
+- mobile responsiveness : currently focusing on clarity and component modularity over full responsiveness, will revisit in future pass
+- implement light and dark mode (maybe via background instead of mode toggle)
+- optimise as desktop-first experiene or OBS overlay module.
