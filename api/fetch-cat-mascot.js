@@ -36,7 +36,10 @@ export default async function handler(req, res) {
 
     try {
         // mongodb connection
+        console.time("mongo");
         const { db } = await connectToMongo();
+
+        console.timeEnd("mongo");
         const collection = db.collection('weather_cat');
 
         // fetch doc
@@ -51,18 +54,9 @@ export default async function handler(req, res) {
 
 
         const s3Params = { Bucket: 'weathercat-2403', Key: imageKey };
-        // const s3Params = {
-        // Bucket: BUCKET_NAME,
-        // Key: imageKey,
-        // };
         console.time("s3-fetch");
         const data = await s3.getObject(s3Params).promise();
-
         console.timeEnd("s3-fetch");
-
-        // res.status(200).json({ message: "S3 fetch success", key: imageKey });
-        // res.status(504).send(error.message);
-        // return;
 
         res.setHeader('Content-Type', data.ContentType || 'image/gif');
         res.send(data.Body);
