@@ -51,8 +51,8 @@ export default async function handler(req, res) {
 
         const imageKey = condition.img_url[mode];
 
-        res.status(200).json({ message: "S3 fetch success", key: imageKey });
-        return;
+        // res.status(200).json({ message: "S3 fetch success", key: imageKey });
+        // return;
 
         const s3Params = { Bucket: 'weathercat-2403', Key: imageKey };
         // const s3Params = {
