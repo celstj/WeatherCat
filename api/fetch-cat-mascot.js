@@ -7,11 +7,21 @@ const BUCKET_NAME = 'weathercat-2403';
 const dbName = 'weatherAttachments';
 const collectionName = 'weather_cat';
 
-const client = new MongoClient(process.env.MONGO_URI, {
-    serverApi: { version: '1' },
-});
+let cachedClient = null;
 
-let isConnected = false;
+async function connectToMongo() {
+    if(cachedClient && cachedClient.isConnected()) {
+        return cachedClient;
+    }
+
+    const client = new MongoClient(process.env.MONGO_URI, {
+        serverApi: { version: '1' },
+    });
+
+    await client.connect();
+    cachedClient = client;
+    return client;
+}
 
 export default async function handler(req, res) {
     const { weatherCondition, mode = 'dark_mode' } = req.query;
@@ -22,14 +32,12 @@ export default async function handler(req, res) {
     }
 
     try {
-        if (!isConnected) {
-        await client.connect();
-        isConnected = true;
-        }
-
+        // mongodb connection
+        const client = await connectToMongo();
         const db = client.db(dbName);
         const collection = db.collection(collectionName);
 
+        // fetch doc
         const condition = await collection.findOne({ w_code: conditionCode });
 
         if (!condition || !condition.img_url || !condition.img_url[mode]) {
