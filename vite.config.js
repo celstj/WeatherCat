@@ -24,5 +24,5 @@ export default defineConfig({
       '/api': 'http://localhost:3000', //req to backend
     }
   },
-  base: '/WeatherCat/',
+  base: '/',
 });
