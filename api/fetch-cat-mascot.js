@@ -8,23 +8,22 @@ const s3 = new S3({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 
-
-// const BUCKET_NAME = 'weathercat-2403';
-
-// const dbName = 'weatherAttachments';
-// const collectionName = 'weather_cat';
-
 let cachedClient = null;
+let cachedDb = null;
 
 async function connectToMongo() {
-    if(cachedClient) return cachedClient;
+    if (cachedClient && cachedDb) return { client: cachedClient, db: cachedDb };
 
     const client = new MongoClient(process.env.MONGO_URI, {
         serverApi: { version: '1' },
     });
     await client.connect();
     cachedDb = client.db('weatherAttachments'); 
-    return client;
+    
+    cachedClient = client;
+    cachedDb = db;
+
+    return { client, db };
 }
 
 export default async function handler(req, res) {
@@ -37,8 +36,7 @@ export default async function handler(req, res) {
 
     try {
         // mongodb connection
-        const client = await connectToMongo();
-        const db = client.db('weatherAttachments');
+        const { db } = await connectToMongo();
         const collection = db.collection('weather_cat');
 
         // fetch doc
@@ -62,9 +60,9 @@ export default async function handler(req, res) {
 
         console.timeEnd("s3-fetch");
 
-        res.status(200).json({ message: "S3 fetch success", key: imageKey });
-        res.status(504).send(error.message);
-        return;
+        // res.status(200).json({ message: "S3 fetch success", key: imageKey });
+        // res.status(504).send(error.message);
+        // return;
 
         res.setHeader('Content-Type', data.ContentType || 'image/gif');
         res.send(data.Body);
