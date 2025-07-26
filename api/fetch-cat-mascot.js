@@ -1,4 +1,6 @@
-import { S3 } from 'aws-sdk';
+import pkg from 'aws-sdk';
+const { S3 } = pkg;
+
 import { MongoClient } from 'mongodb';
 
 const s3 = new S3();
