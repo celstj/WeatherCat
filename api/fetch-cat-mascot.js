@@ -37,7 +37,8 @@ export default async function handler(req, res) {
 
     try {
         // mongodb connection
-        const db = await connectToMongo();
+        const client = await connectToMongo();
+        const db = client.db('weatherAttachments');
         const collection = db.collection('weather_cat');
 
         // fetch doc

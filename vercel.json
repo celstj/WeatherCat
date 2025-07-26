@@ -4,7 +4,7 @@
     "framework": "vite",
     "functions": {
         "api/fetch-cat-mascot.js": {
-            "runtime": "nodejs18.x",
+            "memory": 256,
             "maxDuration": 10
         }
     }
