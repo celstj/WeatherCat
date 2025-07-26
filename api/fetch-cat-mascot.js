@@ -2,11 +2,18 @@ import pkg from 'aws-sdk';
 const { S3 } = pkg;
 import { MongoClient } from 'mongodb';
 
-const s3 = new S3();
-const BUCKET_NAME = 'weathercat-2403';
+const s3 = new S3({
+    region: 'ap-southeast-2', // or your actual region
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+});
 
-const dbName = 'weatherAttachments';
-const collectionName = 'weather_cat';
+res.status(200).json({ message: "S3 fetch success", key: imageKey });
+
+// const BUCKET_NAME = 'weathercat-2403';
+
+// const dbName = 'weatherAttachments';
+// const collectionName = 'weather_cat';
 
 let cachedClient = null;
 
@@ -17,7 +24,7 @@ async function connectToMongo() {
         serverApi: { version: '1' },
     });
     await client.connect();
-    cachedClient = client;
+    cachedDb = client.db('weatherAttachments'); 
     return client;
 }
 
@@ -31,9 +38,8 @@ export default async function handler(req, res) {
 
     try {
         // mongodb connection
-        const client = await connectToMongo();
-        const db = client.db(dbName);
-        const collection = db.collection(collectionName);
+        const db = await connectToMongo();
+        const collection = db.collection('weather_cat');
 
         // fetch doc
         const condition = await collection.findOne({ w_code: conditionCode });
@@ -45,20 +51,17 @@ export default async function handler(req, res) {
 
         const imageKey = condition.img_url[mode];
 
-        const s3Params = {
-        Bucket: BUCKET_NAME,
-        Key: imageKey,
-        };
-        
-        try {
+        const s3Params = { Bucket: 'weathercat-2403', Key: imageKey };
+        // const s3Params = {
+        // Bucket: BUCKET_NAME,
+        // Key: imageKey,
+        // };
+
         const data = await s3.getObject(s3Params).promise();
+
         res.setHeader('Content-Type', data.ContentType || 'image/gif');
         res.send(data.Body);
-        } catch (s3Error) {
-        console.error('S3 fetch failed:', s3Error);
-        res.status(500).send('Failed to fetch image from S3');
-        }
-
+        
     } catch (err) {
         console.error('Error fetching mascot image:', err);
         res.status(500).send('Internal server error');

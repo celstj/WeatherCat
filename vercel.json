@@ -1,5 +1,11 @@
 {
     "buildCommand": "npm run build",
     "outputDirectory": "dist",
-    "framework": "vite"
+    "framework": "vite",
+    "functions": {
+        "api/fetch-cat-mascot.js": {
+            "runtime": "nodejs18.x",
+            "maxDuration": 10
+        }
+    }
 }
