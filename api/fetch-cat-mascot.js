@@ -1,6 +1,5 @@
 import pkg from 'aws-sdk';
 const { S3 } = pkg;
-
 import { MongoClient } from 'mongodb';
 
 const s3 = new S3();
@@ -9,12 +8,18 @@ const BUCKET_NAME = 'weathercat-2403';
 const dbName = 'weatherAttachments';
 const collectionName = 'weather_cat';
 
+console.log("MONGO_URI:", process.env.MONGO_URI ? "✅ exists" : "❌ missing");
+console.log("AWS creds:", {
+    accessKey: process.env.AWS_ACCESS_KEY_ID ? "✅" : "❌",
+    secretKey: process.env.AWS_SECRET_ACCESS_KEY ? "✅" : "❌",
+    region: process.env.AWS_REGION || "❌",
+});
+
+
 let cachedClient = null;
 
 async function connectToMongo() {
-    if(cachedClient && cachedClient.isConnected()) {
-        return cachedClient;
-    }
+    if(cachedClient) return cachedClient;
 
     const client = new MongoClient(process.env.MONGO_URI, {
         serverApi: { version: '1' },
