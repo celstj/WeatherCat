@@ -8,14 +8,6 @@ const BUCKET_NAME = 'weathercat-2403';
 const dbName = 'weatherAttachments';
 const collectionName = 'weather_cat';
 
-console.log("MONGO_URI:", process.env.MONGO_URI ? "✅ exists" : "❌ missing");
-console.log("AWS creds:", {
-    accessKey: process.env.AWS_ACCESS_KEY_ID ? "✅" : "❌",
-    secretKey: process.env.AWS_SECRET_ACCESS_KEY ? "✅" : "❌",
-    region: process.env.AWS_REGION || "❌",
-});
-
-
 let cachedClient = null;
 
 async function connectToMongo() {
@@ -24,7 +16,6 @@ async function connectToMongo() {
     const client = new MongoClient(process.env.MONGO_URI, {
         serverApi: { version: '1' },
     });
-
     await client.connect();
     cachedClient = client;
     return client;
@@ -58,11 +49,16 @@ export default async function handler(req, res) {
         Bucket: BUCKET_NAME,
         Key: imageKey,
         };
-
+        
+        try {
         const data = await s3.getObject(s3Params).promise();
-
         res.setHeader('Content-Type', data.ContentType || 'image/gif');
         res.send(data.Body);
+        } catch (s3Error) {
+        console.error('S3 fetch failed:', s3Error);
+        res.status(500).send('Failed to fetch image from S3');
+        }
+
     } catch (err) {
         console.error('Error fetching mascot image:', err);
         res.status(500).send('Internal server error');
