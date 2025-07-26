@@ -159,7 +159,7 @@ function MainBox() {
 
     useEffect(() => {
         if(!currentAstro) return;
-        console.log(`astro: ${currentAstro} == ${astroGradientMap[currentAstro]}`);
+        // console.log(`astro: ${currentAstro} == ${astroGradientMap[currentAstro]}`);
     }, [currentAstro]);
 
     return (

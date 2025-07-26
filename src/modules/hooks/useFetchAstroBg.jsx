@@ -10,7 +10,7 @@ const useFetchAstroBg = (currentTimeISO, sunTimes) =>{
     const sunrise = new Date(sunTimes.sunrise).getTime();
     const sunset = new Date(sunTimes.sunset).getTime();
 
-    console.log("Current Time:", now);
+    // console.log("Current Time:", now);
 
     const buffer = 30 * 60 * 1000; // 30 minutes
 
