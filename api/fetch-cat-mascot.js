@@ -8,7 +8,6 @@ const s3 = new S3({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 
-res.status(200).json({ message: "S3 fetch success", key: imageKey });
 
 // const BUCKET_NAME = 'weathercat-2403';
 
@@ -51,14 +50,18 @@ export default async function handler(req, res) {
 
         const imageKey = condition.img_url[mode];
 
+        res.status(200).json({ message: "S3 fetch success", key: imageKey });
+
         const s3Params = { Bucket: 'weathercat-2403', Key: imageKey };
         // const s3Params = {
         // Bucket: BUCKET_NAME,
         // Key: imageKey,
         // };
-
+        console.time("s3-fetch");
         const data = await s3.getObject(s3Params).promise();
 
+        console.timeEnd("s3-fetch");
+        
         res.setHeader('Content-Type', data.ContentType || 'image/gif');
         res.send(data.Body);
         
