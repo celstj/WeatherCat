@@ -166,6 +166,12 @@ button:focus-visible {
   right: 60px;
 }
 
+.location-name {
+  word-wrap: break-word;
+  width:400px;
+  text-align: right;
+}
+
 .location-date {
   position: relative;
   font-weight: 400;

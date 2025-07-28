@@ -184,12 +184,13 @@ function MainBox() {
                 {weatherData?.location && !isLoading && forecastForSelectedDay ? (
                     <div className='weather-body'>
 
-                        {mascotUrl ? (
-                            <img className='weather-mascot' src={mascotUrl} alt="Weather mascot"/>
-                            ) : (
-                                <p>Loading mascot...</p>
-                            )
-                        }
+                        {mascotUrl && (
+                            <img 
+                                className='weather-mascot' 
+                                src={mascotUrl} 
+                                alt="Weather mascot"
+                            />
+                        )}
                         
                         <div className='today-weather-info'>
                             <h2 className={`location-name loc-name-${currentAstro}`}>

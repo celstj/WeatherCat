@@ -6,26 +6,28 @@ const useFetchCatMascot = (weatherCondition, mode = 'dark_mode') => {
   useEffect(() => {
     if (!weatherCondition) return;
 
-    const fetchMascotImage = async () => {
-      const apiUrl = `/api/fetch-cat-mascot?weatherCondition=${weatherCondition}&mode=${mode}`;
-
+    const fetchMascotUrl = async () => {
       try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) {
-          console.error('Failed to fetch mascot image', response.status, response.statusText, 
-            `"${weatherCondition}: "${typeof weatherCondition}", "${mode}"`);
+        const keyRes = await fetch(`/api/getImageKey?weatherCondition=${weatherCondition}&mode=${mode}`);
+        if (!keyRes.ok) {
+          console.error('Failed to fetch mascot key:', keyRes.status, keyRes.statusText);
           return;
         }
 
-        const imageBlob = await response.blob();
-        const imageUrl = URL.createObjectURL(imageBlob); 
-        setMascotUrl(imageUrl);
+        const { key } = await keyRes.json();
+        if (!key) {
+          console.warn('No mascot key returned for', weatherCondition, mode);
+          return;
+        }
+
+        const redirectUrl = `/api/mascotRedirect?key=${encodeURIComponent(key)}`;
+        setMascotUrl(redirectUrl);
         
       } catch (error) {
         console.error('Error fetching mascot image:', error);
       }
     };
-    fetchMascotImage();
+    fetchMascotUrl();
 }, [weatherCondition, mode]); 
 
   return mascotUrl;

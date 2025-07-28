@@ -1,7 +1,7 @@
-[Live Project](https://celstj.github.io/WeatherCat/) | [Code](https://github.com/celstj/WeatherCat)
+[Live Project](https://weather-cat.vercel.app/) | [Code](https://github.com/celstj/WeatherCat)
 
 # Weather Cat App 🌦️🐾 
-Weather Cat is an interactive weather app that shows current and hourly weather conditions, with a playful cat mascot that changes according to the weather! You can search for locations, and watch the weather evolve over the hours while the mascot keeps you company. 🌈
+Weather Cat is an interactive weather app that shows current and hourly weather conditions, with a cute cat mascot that changes according to the weather! You can search for locations, and watch the weather evolve over the hours while the mascot keeps you company. 🌈
 
 ---
 
@@ -18,10 +18,12 @@ Weather Cat is an interactive weather app that shows current and hourly weather 
 
 ## Technologies Used
 - React
+- Tailwind CSS
 - Weather API: fetch weather data details.
 - IP Location API: get user's location by IP for default weather data retrieval.
 - S3 Bucket: uploaded img/gif for dynamic mascots.
 - mongoDB: link between S3 bucket to website.
+- Vercel Hosting
 
 ---
 
@@ -37,9 +39,13 @@ cd weather-cat-app
 npm install
 ```
 
-3. ** Set up your `.env` file with your weather API key:**
+3. **Set up your `.env` file with your API keys:**
 ```bash
 VITE_WEATHER_API_KEY=your-weather-api-key
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-key
+MONGO_URI=your-mongodb-uri
+
 ```
 
 4. **Run the App:**
@@ -57,13 +63,17 @@ useLocationByIP fetches the location using an IP location service.
 
 2. Weather Data:
 The app fetches weather data using the Weather API, showing current and forecasted conditions.
+[Weather API](https://www.weatherapi.com/)
 
 It handles hourly and daily data, and updates the UI with the weather info based on the selected hour or day.
 
 3. Mascot Image:
-The mascot changes depending on the weather code (like sunny, rainy, or cloudy), fetched using useFetchCatMascot.
+The mascot changes depending on the weather code (like sunny, rainy, or cloudy), fetched using `useFetchCatMascot`.
 
-This ensures the mascot reflects the weather conditions for the selected time and date.
+- The weather code is sent to the `/api/getImageKey` function which queries MongoDB for the correct S3 image key.
+- Then, it redirects to `/api/mascotRedirect` to fetch the image from S3.
+- This two-step process helps avoid Vercel timeouts by separating logic and image streaming.
+
 
 ---
 
@@ -76,13 +86,21 @@ This ensures the mascot reflects the weather conditions for the selected time an
     had difficulties connecting to MongoDB and S3 to the frontend, ensuring images were fetched from S3 based on weather condition codes.
 - keeping track of the dynamic changes according to weather and hour, and making sure that the details are changed in real time.
 - hourly slider not bleeding into the next day as expected when the slots aren't filled.
-- weatherData.current.condition.text bugging, "undefined property chain" ??? what, data was not called fast enough before useEffect() ? , possibly why data was not displayed even though it was being called.
+- weatherData.current.condition.text not being shown as expected, fixed by removing the 'text' from weatherData.current.condition
+-restructured server functions to split MongoDB logic and S3 image fetching to avoid Vercel 504 errors, and reworked how mascot images are served using redirect handler
+
+---
+
+## Self-Deployment Notes
+
+- For local testing, API routes (under `/api/`) can be accessed via `npm run dev`. (doesn't load mascot image, hence the switch to `npx vercel dev`)
+- If using Vercel for deployment, **no need to define functions manually in `vercel.json`** unless doing advanced routing — Vercel auto-detects your `/api` folder.
+- Edge Functions might introduce **cold start latency**, especially on first load. In production, it stabilizes a bit better.
 
 
 ## Known Issues / TODO
+- latency/performance check for seamless img load feedback
 
 **Potential improvements Ideas:**
 - replace all the `current api` to `forecast api` as forecast api also includes current weather data, and it'll make data retrieving more streamline
-- mobile responsiveness : currently focusing on clarity and component modularity over full responsiveness, will revisit in future pass
-- implement light and dark mode (maybe via background instead of mode toggle)
 - optimise as desktop-first experiene or OBS overlay module.
