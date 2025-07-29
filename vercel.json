@@ -1,5 +1,9 @@
 {
     "buildCommand": "npm run build",
     "outputDirectory": "dist",
-    "framework": "vite"
+    "framework": "vite",
+    "functions": {
+        "api/getImageMeta.js": { "runtime": "edge" },
+        "api/getImageUrl.js": { "runtime": "edge" }
+    }
 }

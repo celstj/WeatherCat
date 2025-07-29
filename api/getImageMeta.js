@@ -1,28 +1,27 @@
-// app/api/internal/getImageMeta/route.js
-
 import { MongoClient } from 'mongodb';
 
-let cachedDb = null;
+export const config = {
+    runtime: 'edge',
+    };
 
-const client = new MongoClient(process.env.MONGO_URI, {
-    serverApi: { version: '1' },
-    });
+    let cachedDb = null;
 
     async function connectToMongo() {
     if (cachedDb) return cachedDb;
-    if (!client.topology?.isConnected?.()) {
-        await client.connect();
-    }
+    const client = new MongoClient(process.env.MONGO_URI, {
+        serverApi: { version: '1' },
+    });
+    await client.connect();
     cachedDb = client.db('weatherAttachments');
     return cachedDb;
     }
 
-    export async function GET(req) {
+    export default async function handler(req) {
     const { searchParams } = new URL(req.url);
     const weatherCondition = searchParams.get('weatherCondition');
     const mode = searchParams.get('mode') || 'dark_mode';
-
     const conditionCode = Number(weatherCondition);
+
     if (isNaN(conditionCode)) {
         return new Response('Invalid weather condition code', { status: 400 });
     }

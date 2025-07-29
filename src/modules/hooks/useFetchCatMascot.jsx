@@ -8,7 +8,7 @@ const useFetchCatMascot = (weatherCondition, mode = 'dark_mode') => {
 
     const fetchMascotUrl = async () => {
       try {
-        const keyRes = await fetch(`/api/internal/getImageMeta?weatherCondition=${weatherCondition}&mode=${mode}`);
+        const keyRes = await fetch(`/api/getImageMeta?weatherCondition=${weatherCondition}&mode=${mode}`);
         if (!keyRes.ok) {
           console.error('Failed to fetch mascot key:', keyRes.status, keyRes.statusText);
           return;
@@ -20,7 +20,7 @@ const useFetchCatMascot = (weatherCondition, mode = 'dark_mode') => {
           return;
         }
 
-        const s3Res = await fetch(`/api/edge/getImageUrl`, {
+        const s3Res = await fetch(`/api/getImageUrl`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
