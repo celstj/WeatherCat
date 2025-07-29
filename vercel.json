@@ -3,7 +3,7 @@
     "outputDirectory": "dist",
     "framework": "vite",
     "functions": {
-        "api/getImageMeta.js": { "runtime": "edge" },
-        "api/getImageUrl.js": { "runtime": "edge" }
+        "api/getImageMeta.js": { "runtime": "edge@2.0.0" },
+        "api/getImageUrl.js": { "runtime": "edge@2.0.0" }
     }
 }
