@@ -9,7 +9,7 @@ function SearchBar({ onSearch }) {
             const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
             try {
                 const response = await fetch(
-                    `http://api.weatherapi.com/v1/search.json?key=${apiKey}&q=${input}`
+                    `https://api.weatherapi.com/v1/search.json?key=${apiKey}&q=${input}`
                 );
                 const data = await response.json();
                 setSuggestions(data);
