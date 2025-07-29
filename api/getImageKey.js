@@ -30,7 +30,17 @@ export default async function handler(req, res) {
         const { db } = await connectToMongo();
         const collection = db.collection('weather_cat');
 
-        const condition = await collection.findOne({ w_code: conditionCode });
+        function timeoutPromise(promise, ms) {
+            return Promise.race([
+                promise,
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms))
+            ]);
+        }
+
+        const condition = await timeoutPromise(
+            collection.findOne({ w_code: conditionCode }),
+            9000 // 9 seconds so Vercel doesn't freak out
+        );
 
         if (!condition || !condition.img_url || !condition.img_url[mode]) {
         return res.status(404).send('Image key not found');
