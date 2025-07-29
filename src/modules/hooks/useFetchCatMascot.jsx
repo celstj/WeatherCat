@@ -8,7 +8,7 @@ const useFetchCatMascot = (weatherCondition, mode = 'dark_mode') => {
 
     const fetchMascotUrl = async () => {
       try {
-        const keyRes = await fetch(`/api/getImageKey?weatherCondition=${weatherCondition}&mode=${mode}`);
+        const keyRes = await fetch(`/api/getImageMeta?weatherCondition=${weatherCondition}&mode=${mode}`);
         if (!keyRes.ok) {
           console.error('Failed to fetch mascot key:', keyRes.status, keyRes.statusText);
           return;
@@ -20,13 +20,26 @@ const useFetchCatMascot = (weatherCondition, mode = 'dark_mode') => {
           return;
         }
 
-        const redirectUrl = `/api/mascotRedirect?key=${encodeURIComponent(key)}`;
-        setMascotUrl(redirectUrl);
+        const urlRes = await fetch(`/api/edge/getImageUrl`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ key }),
+        });
+        if (!urlRes.ok) {
+          console.error('Failed to fetch signed mascot URL:', urlRes.status, urlRes.statusText);
+          return;
+        }
+        const { url } = await urlRes.json();
+        
+        setMascotUrl(url);
         
       } catch (error) {
         console.error('Error fetching mascot image:', error);
       }
     };
+    
     fetchMascotUrl();
 }, [weatherCondition, mode]); 
 

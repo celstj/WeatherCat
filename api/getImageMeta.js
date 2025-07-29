@@ -4,9 +4,9 @@ let cachedDb = null;
 
 const client = new MongoClient(process.env.MONGO_URI, {
     serverApi: { version: '1' },
-});
+    });
 
-async function connectToMongo() {
+    async function connectToMongo() {
     if (cachedDb) return cachedDb;
 
     if (!client.topology?.isConnected?.()) {
@@ -15,9 +15,9 @@ async function connectToMongo() {
 
     cachedDb = client.db('weatherAttachments');
     return cachedDb;
-}
+    }
 
-export default async function handler(req, res) {
+    export default async function handler(req, res) {
     const { weatherCondition, mode = 'dark_mode' } = req.query;
     const conditionCode = Number(weatherCondition);
 
@@ -30,15 +30,16 @@ export default async function handler(req, res) {
         const collection = db.collection('weather_cat');
 
         const condition = await Promise.race([
-            collection.findOne({ w_code: conditionCode }),
-            new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Timeout')), 9000)
+        collection.findOne({ w_code: conditionCode }),
+        new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout')), 9000)
         )
         ]);
 
-        if (!condition.img_url[mode]) {
+        if (!condition?.img_url?.[mode]) {
         return res.status(404).send('Image key not found');
         }
+
         return res.status(200).json({ key: condition.img_url[mode] });
 
     } catch (err) {
