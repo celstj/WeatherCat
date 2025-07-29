@@ -1,37 +1,44 @@
 import { MongoClient } from 'mongodb';
 
+let cachedClient = null;
 let cachedDb = null;
-const metaCache = new Map();
 
 async function connectToMongo() {
-    if (cachedDb) return cachedDb;
+    if (cachedClient && cachedDb) {
+        // reuse existing client & db
+        return cachedDb;
+    }
 
     const client = new MongoClient(process.env.MONGO_URI, {
         serverApi: { version: '1' },
     });
+
     await client.connect();
 
-    cachedDb = client.db('weatherAttachments');
+    cachedClient = client;
+    cachedDb = client.db('weatherAttachments'); // make sure your DB name matches here
     return cachedDb;
 }
 
+const metaCache = new Map();
+
 function setCache(key, value, ttl = 3600) {
-metaCache.set(key, { value, expires: Date.now() + ttl * 1000 });
+  metaCache.set(key, { value, expires: Date.now() + ttl * 1000 });
 }
 
 function getCache(key) {
-const cached = metaCache.get(key);
+    const cached = metaCache.get(key);
+    if (!cached) return null;
+    if (Date.now() > cached.expires) {
+        metaCache.delete(key);
+        return null;
+    }
+    return cached.value;
+    }
 
-if (!cached) return null;
-if (Date.now() > cached.expires) {
-    metaCache.delete(key);
-    return null;
-}
-return cached.value;
-}
-
-export default async function handler(req, res) {
+    export default async function handler(req, res) {
     const { weatherCondition, mode = 'dark_mode' } = req.query;
+
     console.log('[DEBUG] Query:', { weatherCondition, mode });
 
     const conditionCode = Number(weatherCondition);
