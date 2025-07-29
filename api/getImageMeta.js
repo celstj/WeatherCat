@@ -1,29 +1,50 @@
 import { MongoClient } from 'mongodb';
 
-export const config = {
-    runtime: 'edge',
-    };
+let cachedDb = null;
+const metaCache = new app();
 
-    let cachedDb = null;
-
-    async function connectToMongo() {
+async function connectToMongo() {
     if (cachedDb) return cachedDb;
+
     const client = new MongoClient(process.env.MONGO_URI, {
         serverApi: { version: '1' },
     });
     await client.connect();
+
     cachedDb = client.db('weatherAttachments');
     return cachedDb;
-    }
+}
 
-    export default async function handler(req) {
-    const { searchParams } = new URL(req.url);
-    const weatherCondition = searchParams.get('weatherCondition');
-    const mode = searchParams.get('mode') || 'dark_mode';
+function setCache(key, value, ttl = 3600) {
+    metaCache.set(key, { value, expires: Date.now() + ttl * 1000 });
+}
+
+function getCache(key) {
+    const cached = metaCache.get(key);
+
+    if (!cached) return null;
+    if (Date.now() > cached.expires) {
+        metaCache.delete(key);
+        return null;
+    }
+    return cached.value;
+}
+
+export default async function handler(req) {
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const weatherCondition = url.searchParams.get('weatherCondition');
+    const mode = url.searchParams.get('mode') || 'dark_mode';
     const conditionCode = Number(weatherCondition);
 
     if (isNaN(conditionCode)) {
-        return new Response('Invalid weather condition code', { status: 400 });
+        return res.writeHead(400).end('Invalid weather condition code');
+    }
+
+    const cacheKey = `${conditionCode}_${mode}`;
+    const cached = getCache(cacheKey);
+    if (cached) {
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        return res.status(200).json({ key: cached });
     }
 
     try {
@@ -31,20 +52,19 @@ export const config = {
         const collection = db.collection('weather_cat');
 
         const result = await Promise.race([
-        collection.findOne({ w_code: conditionCode }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 9000)),
+            collection.findOne({ w_code: conditionCode }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 9000)),
         ]);
 
-        if (!result?.img_url?.[mode]) {
-        return new Response('Image key not found', { status: 404 });
-        }
+        const imageKey = result?.img_url?.[mode];
+        if (!imageKey) return res.status(404).end('Image key not found');
 
-        return new Response(JSON.stringify({ key: result.img_url[mode] }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-        });
+        setCache(cacheKey, imageKey);
+
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        return res.status(200).json({ key: imageKey });
     } catch (err) {
         console.error('[MongoDB Error]', err.stack || err.message || err);
-        return new Response('Internal server error', { status: 500 });
+        return res.status(500).end('Internal server error');
     }
 }
