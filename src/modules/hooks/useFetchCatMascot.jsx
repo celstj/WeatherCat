@@ -5,21 +5,28 @@ const useFetchCatMascot = (weatherCondition, mode = 'dark_mode') => {
 
   useEffect(() => {
     if (!weatherCondition) return;
+    
 
     const fetchMascotUrl = async () => {
       try {
         const keyRes = await fetch(`/api/getImageMeta?weatherCondition=${weatherCondition}&mode=${mode}`);
         if (!keyRes.ok) {
-          console.error('Failed to fetch mascot key:', keyRes.status, keyRes.statusText);
+          console.error('[Mascot Fetch] Failed to fetch mascot key:', keyRes.status, keyRes.statusText);
+          const text = await keyRes.text();
+          console.error('[Mascot Fetch] Response text:', text);
           return;
         }
 
         const { key } = await keyRes.json();
+        console.log('[Mascot Fetch] Received mascot key:', key);
+
         if (!key) {
           console.warn('No mascot key returned for', weatherCondition, mode);
           return;
         }
 
+        console.log('[useFetchCatMascot] Requesting S3 URL with key:', key);
+        
         const s3Res = await fetch(`/api/getImageUrl`, {
           method: 'POST',
           headers: {
@@ -27,14 +34,19 @@ const useFetchCatMascot = (weatherCondition, mode = 'dark_mode') => {
           },
           body: JSON.stringify({ key }),
         });
+        
         if (!s3Res.ok) {
-          console.error('Failed to fetch signed S3 URL:', urlRes.status, urlRes.statusText);
+          const errorText = await s3Res.text();
+          console.error('[Mascot Fetch] Failed to fetch signed S3 URL:', s3Res.status, s3Res.statusText);
+          console.error('[Mascot Fetch] Response text:', errorText);
           return;
         }
         const { url } = await s3Res.json();
+        console.log('[Mascot Fetch] Final mascot URL:', url);
+
         setMascotUrl(url);
       } catch (error) {
-        console.error('Error fetching mascot image:', error);
+        console.error('[Mascot Fetch] Unexpected error:', error.message || error);
       }
     };
 
