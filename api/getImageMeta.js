@@ -1,7 +1,7 @@
 import { MongoClient } from 'mongodb';
 
 let cachedDb = null;
-const metaCache = new app();
+const metaCache = new Map();
 
 async function connectToMongo() {
     if (cachedDb) return cachedDb;
