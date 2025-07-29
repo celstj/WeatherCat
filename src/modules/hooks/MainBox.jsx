@@ -155,11 +155,9 @@ function MainBox() {
     };
 
     const currentBgGradient = astroGradientMap[currentAstro] || '';
-    // console.log("Current Background Gradient:", currentBgGradient);
 
     useEffect(() => {
         if(!currentAstro) return;
-        // console.log(`astro: ${currentAstro} == ${astroGradientMap[currentAstro]}`);
     }, [currentAstro]);
 
     return (
