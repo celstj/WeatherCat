@@ -18,15 +18,12 @@ const useFetchCatMascot = (weatherCondition, mode = 'dark_mode') => {
         }
 
         const { key } = await keyRes.json();
-        console.log('[Mascot Fetch] Received mascot key:', key);
 
         if (!key) {
           console.warn('No mascot key returned for', weatherCondition, mode);
           return;
         }
 
-        console.log('[useFetchCatMascot] Requesting S3 URL with key:', key);
-        
         const s3Res = await fetch(`/api/getImageUrl`, {
           method: 'POST',
           headers: {

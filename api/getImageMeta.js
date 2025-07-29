@@ -39,8 +39,6 @@ function getCache(key) {
     export default async function handler(req, res) {
     const { weatherCondition, mode = 'dark_mode' } = req.query;
 
-    console.log('[DEBUG] Query:', { weatherCondition, mode });
-
     const conditionCode = Number(weatherCondition);
     if (isNaN(conditionCode)) {
         console.error('[DEBUG] Invalid weather condition code:', weatherCondition);
@@ -56,20 +54,15 @@ function getCache(key) {
     }
 
     try {
-        console.log('[DEBUG] Connecting to MongoDB');
         const db = await connectToMongo();
         const collection = db.collection('weather_cat');
 
-        console.log('[DEBUG] Querying MongoDB for code:', conditionCode);
         const result = await Promise.race([
             collection.findOne({ w_code: conditionCode }),
             new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 9000)),
         ]);
 
-        console.log('[DEBUG] MongoDB result:', result);
-
         const imageKey = result?.img_url?.[mode];
-        console.log('[DEBUG] Extracted imageKey:', imageKey);
 
         if (!imageKey) {
             console.warn('[DEBUG] No image key found for mode:', mode);

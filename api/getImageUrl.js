@@ -41,7 +41,6 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'Missing or invalid image key' });
         }
 
-
         const cachedUrl = getCache(key);
         if (cachedUrl) {
             console.log('[Cache] Returning cached S3 URL for key:', key);
@@ -54,24 +53,13 @@ export default async function handler(req, res) {
             Key: key,
         });
 
-        console.log('[S3] Getting signed URL for:', key);
-
         const signedUrl = await getSignedUrl(s3, command, { expiresIn: 60 });
 
         setCache(key, signedUrl);
 
-        console.log('[S3] Signed URL generated:', signedUrl);
-
         res.setHeader('Cache-Control', 'public, max-age=60');
         return res.status(200).json({ url: signedUrl });
     } catch (err) {
-        console.error('[S3 Error - Full Dump]');
-        console.error('Error name:', err.name);
-        console.error('Error message:', err.message);
-        console.error('Error stack:', err.stack);
-        console.error('Full error object:', JSON.stringify(err, null, 2));
-
         return res.status(500).json({ error: 'Failed to generate signed URL', details: err.message });
     }
-
 }

@@ -99,8 +99,7 @@ The mascot changes depending on the weather code (like sunny, rainy, or cloudy),
 
 
 ## Known Issues / TODO
-- `Current Working` on optimizing mobile responsiveness, layout will adapt across devices
-    by August 2025.
+- `Current Working` on optimizing mobile responsiveness, layout will adapt across devices by August 2025.
 - latency/performance check for seamless img load feedback
 
 **Potential improvements Ideas:**
