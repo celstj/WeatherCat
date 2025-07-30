@@ -275,7 +275,7 @@ button:focus-visible {
   padding: 1px;
   margin: 10px;
   border: 1px solid #ddd;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.6);
   border-radius: 8px;
 }
 
@@ -440,7 +440,7 @@ button:focus-visible {
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
+    color: #423081;
     background-color: #ffffff;
   }
   a:hover {
@@ -453,7 +453,7 @@ button:focus-visible {
 
 @media (prefers-color-scheme: dark) {
   :root {
-    color: #19222b;
+    color: #423081;
     background-color: #1d1d20;
   }
   a:hover {
@@ -461,8 +461,6 @@ button:focus-visible {
   }
   button {
     background-color: #1d1d20;
-  }
-  .forecast-day {
     color:#e5e7eb;
   }
 }
